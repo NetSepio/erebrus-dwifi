@@ -3,14 +3,32 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/NetSepio/erebrus-dwifi/dwifi"
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	color.NoColor = false
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		log.Fatal("DB_DSN environment variable is not set")
+	}
+
+	db, err := dwifi.InitDB(dsn)
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	dwifi.InitDevicesDatabase(db)
 
 	ifaces, err := net.Interfaces()
 	if err != nil {

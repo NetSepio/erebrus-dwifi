@@ -1,35 +1,45 @@
 package dwifi
 
 import (
+	"encoding/json"
+	"log"
 	"net"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type deviceInfo struct {
-	macAddress         net.HardwareAddr
-	ipAddress          net.IP
-	connectedAt        time.Time
-	totalConnectedTime time.Duration
-	connected          bool
-	lastChecked        time.Time
-	defaultGateway     string
-	manufacturer       string
-	interfaceName      string
-	HostSSID           string
+	MACAddress         net.HardwareAddr `json:"macAddress"`
+	IPAddress          net.IP           `json:"ipAddress"`
+	ConnectedAt        time.Time        `json:"connectedAt"`
+	TotalConnectedTime time.Duration    `json:"totalConnectedTime"`
+	Connected          bool             `json:"connected"`
+	LastChecked        time.Time        `json:"lastChecked"`
+	DefaultGateway     string           `json:"defaultGateway"`
+	Manufacturer       string           `json:"manufacturer"`
+	InterfaceName      string           `json:"interfaceName"`
+	HostSSID           string           `json:"hostSSID"`
 }
 
 var devices = make(map[string]*deviceInfo)
 var devicesLock sync.Mutex
+var db *gorm.DB
+
+func InitDevicesDatabase(database *gorm.DB) {
+	db = database
+}
 
 func checkDisconnectedDevices() {
 	devicesLock.Lock()
 	defer devicesLock.Unlock()
 	for _, device := range devices {
-		if device.connected && time.Since(device.lastChecked) > 15*time.Second {
-			device.totalConnectedTime += time.Since(device.connectedAt)
-			device.connected = false
+		if device.Connected && time.Since(device.LastChecked) > 15*time.Second {
+			device.TotalConnectedTime += time.Since(device.ConnectedAt)
+			device.Connected = false
 			logDeviceInfo("Device disconnected", device)
+			updateDatabase(device)
 		}
 	}
 }
@@ -38,8 +48,38 @@ func PrintTotalConnectedTime() {
 	devicesLock.Lock()
 	defer devicesLock.Unlock()
 	for _, device := range devices {
-		if device.totalConnectedTime > 0 {
+		if device.TotalConnectedTime > 0 {
 			logDeviceInfo("Total connected time", device)
+			updateDatabase(device)
 		}
 	}
+}
+
+func updateDatabase(device *deviceInfo) {
+	defaultGateway := device.DefaultGateway
+	devicesByGateway := getDevicesByGateway(defaultGateway)
+	jsonData, err := json.Marshal(devicesByGateway)
+	if err != nil {
+		log.Printf("Failed to marshal device data: %v", err)
+		return
+	}
+
+	nodeData := NodeDwifi{
+		Gateway: defaultGateway,
+		Status:  string(jsonData),
+	}
+
+	if err := SaveNodeData(db, &nodeData); err != nil {
+		log.Printf("Failed to save node data: %v", err)
+	}
+}
+
+func getDevicesByGateway(defaultGateway string) []*deviceInfo {
+	var result []*deviceInfo
+	for _, device := range devices {
+		if device.DefaultGateway == defaultGateway {
+			result = append(result, device)
+		}
+	}
+	return result
 }

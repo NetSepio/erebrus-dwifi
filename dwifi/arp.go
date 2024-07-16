@@ -90,26 +90,26 @@ func readARP(handle *pcap.Handle, iface *net.Interface, stop chan struct{}) {
 				manufacturer := getManufacturer(mac)
 				defaultGateway := getDefaultGateway()
 				interfaceName := iface.Name
-				HostSSID := getHostSSID(interfaceName)
+				hostSSID := getHostSSID(interfaceName)
 
 				devices[mac] = &deviceInfo{
-					macAddress:         net.HardwareAddr(arp.SourceHwAddress),
-					ipAddress:          net.IP(arp.SourceProtAddress),
-					connectedAt:        time.Now(),
-					totalConnectedTime: 0,
-					connected:          true,
-					lastChecked:        time.Now(),
-					defaultGateway:     defaultGateway,
-					manufacturer:       manufacturer,
-					interfaceName:      interfaceName,
-					HostSSID:           HostSSID,
+					MACAddress:         net.HardwareAddr(arp.SourceHwAddress),
+					IPAddress:          net.IP(arp.SourceProtAddress),
+					ConnectedAt:        time.Now(),
+					TotalConnectedTime: 0,
+					Connected:          true,
+					LastChecked:        time.Now(),
+					DefaultGateway:     defaultGateway,
+					Manufacturer:       manufacturer,
+					InterfaceName:      interfaceName,
+					HostSSID:           hostSSID,
 				}
 				logDeviceInfo("Device connected", devices[mac])
-			} else if !device.connected {
-				device.ipAddress = net.IP(arp.SourceProtAddress)
-				device.connectedAt = time.Now()
-				device.connected = true
-				device.lastChecked = time.Now()
+			} else if !device.Connected {
+				device.IPAddress = net.IP(arp.SourceProtAddress)
+				device.ConnectedAt = time.Now()
+				device.Connected = true
+				device.LastChecked = time.Now()
 				logDeviceInfo("Device reconnected", device)
 			}
 			devicesLock.Unlock()
