@@ -262,9 +262,15 @@ func logDeviceInfo(event string, device *deviceInfo) {
 
 	// ADD THIS
 
-	data := wifiDbOperations.DeviceInfo{
+	data := wifiDbOperations.DeviceStatus{
+		IpAddress:          device.ipAddress.String(),
 		MacAddress:         device.macAddress.String(),
 		Manufacturer:       device.manufacturer,
+		DefaultGateway:     device.defaultGateway,
+		InterfaceName:      device.interfaceName,
+		HostSSID:           device.connectionType,
+		LastChecked:        device.lastChecked,
+		ConnectedAt:        device.connectedAt,
 		TotalConnectedTime: device.totalConnectedTime.String(),
 	}
 

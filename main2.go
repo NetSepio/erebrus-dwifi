@@ -13,6 +13,6 @@ func init() {
 	database.Connect()
 }
 
-func main() {
+func main2() {
 	wifiAlgorithem.RunWifi()
 }

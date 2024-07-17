@@ -46,3 +46,12 @@ func Connect() *gorm.DB {
 
 	return db
 }
+
+// Ensure tables are created
+func AutoMigrateTables(models ...interface{}) error {
+	db := Connect()
+	if db == nil {
+		return fmt.Errorf("database not connected")
+	}
+	return db.AutoMigrate(models...)
+}

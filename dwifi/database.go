@@ -9,9 +9,9 @@ import (
 )
 
 type NodeDwifi struct {
-	ID        uint   `gorm:"primaryKey"`
-	Gateway   string `gorm:"index"`
-	Status    string `gorm:"type:jsonb"`
+	ID        uint
+	Gateway   string
+	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

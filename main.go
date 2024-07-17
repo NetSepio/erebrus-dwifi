@@ -19,7 +19,7 @@ func init() {
 	database.Connect()
 }
 
-func main2() {
+func main() {
 	color.NoColor = false
 
 	dsn := os.Getenv("DB_DSN")

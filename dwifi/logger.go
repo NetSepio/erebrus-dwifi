@@ -11,8 +11,8 @@ func logDeviceInfo(event string, device *deviceInfo) {
 	fmt.Println("----------------------------------------")
 	fmt.Printf("%s : %s\n", color.HiGreenString(event), color.HiBlueString(time.Now().Format("2006-01-02 15:04:05")))
 
-	fmt.Printf("  MAC: %s\n", color.HiMagentaString(device.MACAddress.String()))
-	fmt.Printf("  IP: %s\n", color.HiMagentaString(device.IPAddress.String()))
+	fmt.Printf("  MAC: %s\n", color.HiMagentaString(device.MACAddress))
+	fmt.Printf("  IP: %s\n", color.HiMagentaString(device.IPAddress))
 	fmt.Printf("  Manufacturer: %s\n", color.HiRedString(device.Manufacturer))
 	fmt.Printf("  Gateway: %s\n", color.HiYellowString(device.DefaultGateway))
 	fmt.Printf("  Interface: %s\n", color.HiGreenString(device.InterfaceName))
