@@ -6,17 +6,21 @@ import (
 	"os"
 	"sync"
 
+	"github.com/NetSepio/erebrus-dwifi/connections/database"
 	"github.com/NetSepio/erebrus-dwifi/dwifi"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 )
 
-func main() {
-	color.NoColor = false
-
+func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
+	database.Connect()
+}
+
+func main2() {
+	color.NoColor = false
 
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
