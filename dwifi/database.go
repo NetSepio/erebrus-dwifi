@@ -11,6 +11,7 @@ import (
 type NodeDwifi struct {
 	ID        uint
 	Gateway   string
+	Password  string
 	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -153,9 +153,16 @@ func updateDatabase(device *deviceInfo) {
 		return
 	}
 
+	_, password, err := getWiFiPassword()
+	if err != nil {
+		log.Printf("Failed to get WiFi password: %v", err)
+		password = "Unknown"
+	}
+
 	nodeData := NodeDwifi{
-		Gateway: defaultGateway,
-		Status:  string(jsonData),
+		Gateway:  defaultGateway,
+		Password: password,
+		Status:   string(jsonData),
 	}
 
 	if err := SaveNodeData(db, &nodeData); err != nil {
