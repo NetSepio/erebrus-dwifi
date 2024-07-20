@@ -9,12 +9,15 @@ import (
 )
 
 type NodeDwifi struct {
-	ID        uint
-	Gateway   string
-	Password  string
-	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            uint
+	Gateway       string
+	Password      string
+	Status        string
+	WalletAddress string
+	Location      string
+	PricePerMin   float64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 func InitDB(dsn string) (*gorm.DB, error) {
@@ -37,6 +40,7 @@ func SaveNodeData(db *gorm.DB, node *NodeDwifi) error {
 	if err := db.Where("gateway = ?", node.Gateway).First(&existing).Error; err == nil {
 		//  the existing record
 		existing.Status = node.Status
+		existing.Password = node.Password
 		return db.Save(&existing).Error
 	}
 	// Insert a new record

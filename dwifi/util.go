@@ -1,7 +1,10 @@
 package dwifi
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os/exec"
 	"strings"
 )
@@ -81,4 +84,49 @@ func getWiFiPassword() (string, string, error) {
 
 	password := strings.TrimSpace(string(output))
 	return wifiConnection, password, nil
+}
+
+func getPublicIP() (string, error) {
+	resp, err := http.Get("https://api.ipify.org")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(ip), nil
+}
+
+func getLocation() (string, error) {
+	resp, err := http.Get("https://ipapi.co/json/")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	city, ok := result["city"].(string)
+	if !ok {
+		return "", fmt.Errorf("city not found in API response")
+	}
+
+	country, ok := result["country_name"].(string)
+	if !ok {
+		return "", fmt.Errorf("country not found in API response")
+	}
+
+	return fmt.Sprintf("%s, %s", city, country), nil
 }
