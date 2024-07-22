@@ -4,9 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 )
 
 func getDefaultGateway() string {
@@ -22,6 +28,22 @@ func getDefaultGateway() string {
 }
 
 func getManufacturer(mac string) string {
+	// Check if this is the MAC of the current device
+	interfaces, err := net.Interfaces()
+	if err == nil {
+		for _, iface := range interfaces {
+			if iface.HardwareAddr.String() == mac {
+				// Use dmidecode to get the manufacturer for the current device
+				out, err := exec.Command("sudo", "dmidecode", "-s", "system-manufacturer").Output()
+				if err == nil {
+					return strings.TrimSpace(string(out))
+				}
+				// If dmidecode fails, fall back to a generic description
+				return "This Device"
+			}
+		}
+	}
+
 	out, err := exec.Command("sudo", "arp-scan", "--localnet").Output()
 	if err != nil {
 		return "Unknown Manufacturer"
@@ -102,31 +124,72 @@ func getPublicIP() (string, error) {
 }
 
 func getLocation() (string, error) {
-	resp, err := http.Get("https://ipapi.co/json/")
+	resp, err := http.Get("https://ipinfo.io/")
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	var location struct {
+		City    string `json:"city"`
+		Region  string `json:"region"`
+		Country string `json:"country"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&location); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s, %s, %s", location.City, location.Region, location.Country), nil
+}
+
+func PrintFancyBanner() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	banner := `
+	 ______          _                      _____            _  ____  _
+	|  ____|        | |                    |  __ \          (_)|  __)(_)
+	| |__   _ __ ___| |__  _ __ _   _ ___  | |  | |_      _  _ | |_   _
+	|  __| | '__/ _ \ '_ \| '__| | | / __| | |  | \ \ /\ / /| ||  _| | |
+	| |____| | |  __/ |_) | |  | |_| \__ \ | |__| |\ V  V / | || |   | |
+	|______|_|  \___|_.__/|_|   \__,_|___/ |_____/  \_/\_/  |_||_|   |_|
+																  
+    `
+	lines := strings.Split(banner, "\n")
+	colors := []*color.Color{
+		color.New(color.FgRed).Add(color.Bold),
+		color.New(color.FgYellow).Add(color.Bold),
+		color.New(color.FgGreen).Add(color.Bold),
+		color.New(color.FgCyan).Add(color.Bold),
+		color.New(color.FgBlue).Add(color.Bold),
+		color.New(color.FgMagenta).Add(color.Bold),
+	}
+
+	for i, line := range lines {
+		colors[i%len(colors)].Println(line)
+	}
+
+	fmt.Println()
+	color.New(color.FgHiWhite).Add(color.Bold, color.Underline).Println("Welcome to Erebrus DWiFi!")
+	fmt.Println()
+	fmt.Printf(" Wallet Address: %s\n", color.HiGreenString(os.Getenv("WALLET_ADDRESS")))
+	fmt.Printf(" Chain : %s\n", color.HiBlueString(os.Getenv("CHAIN")))
+	fmt.Println(" Price Per Minute : ", color.HiMagentaString(os.Getenv("PRICE_PER_MIN")))
+
+}
+
+func getOwnIP(iface *net.Interface) string {
+	addrs, err := iface.Addrs()
 	if err != nil {
-		return "", err
+		return ""
 	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
 	}
-
-	city, ok := result["city"].(string)
-	if !ok {
-		return "", fmt.Errorf("city not found in API response")
-	}
-
-	country, ok := result["country_name"].(string)
-	if !ok {
-		return "", fmt.Errorf("country not found in API response")
-	}
-
-	return fmt.Sprintf("%s, %s", city, country), nil
+	return ""
 }
