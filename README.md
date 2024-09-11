@@ -2,6 +2,8 @@
 
 erebrus-dwifi is a Go program that tracks devices connected to your network using ARP scanning and packet capture, built on the PEAQ network for Decentralized Physical Infrastructure Networks (DePIN).
 
+**Smart Contract Deployed At :** *0x5940445e1e8A419ebea10B45c5d1C0F603926F41 (Erebrus Registry)*
+
 ## Overview
 
 This program scans the local network to detect devices based on ARP responses. It logs connection and disconnection events, tracks total connected time, and retrieves device information such as MAC address, IP address, manufacturer, Host SSID, Gateway IP and network interface details. Leveraging the PEAQ network, erebrus-dwifi contributes to the decentralized management of physical network infrastructure.
