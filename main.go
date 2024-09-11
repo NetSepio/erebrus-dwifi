@@ -12,13 +12,12 @@ import (
 
 	"github.com/NetSepio/erebrus-dwifi/dwifi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 
-	node "github.com/NetSepio/erebrus-dwifi/node"
+	contract "github.com/NetSepio/erebrus-dwifi/contractcall"
 )
 
 func main() {
@@ -70,37 +69,17 @@ func main() {
 	auth.GasLimit = uint64(300000)
 	auth.GasPrice = gasPrice
 
-	contractAddress := common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
-	instance, err := node.NewNode(contractAddress, client)
-	if err != nil {
-		log.Fatal(err)
-	}
+	txHash, txBlock, err := contract.ErebrusRegistry()
 
-	user := common.HexToAddress(os.Getenv("WALLET_ADDRESS"))
-	deviceId := os.Getenv("DEVICE_ID")
-	peaqDid := common.HexToAddress(os.Getenv("PEAQ_DID"))
-	ssid := os.Getenv("SSID")
-	location := os.Getenv("LOCATION")
-	pricePerMin, ok := new(big.Int).SetString(os.Getenv("PRICE_PER_MIN"), 10)
-	if !ok {
-		log.Fatal("Failed to parse PRICE_PER_MIN")
-	}
-
-	tx, err := instance.DelegateRegisterWifiNode(auth, user, deviceId, peaqDid, ssid, location, pricePerMin)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf(color.HiYellowString(" tx sent: %s\n", tx.Hash().Hex()))
-
-	receipt, err := bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf(color.HiGreenString(" tx mined: %s\n", receipt.TxHash.Hex()))
+	fmt.Printf(color.HiYellowString("\n tx Hash: %s\n", txHash))
+	fmt.Printf(color.HiGreenString(" tx mined in block number : %s\n", txBlock))
 	fmt.Println("____________________________________________________________________________________")
-	fmt.Println(color.HiBlueString(" Dwifi Registered SUccessfully!!!"))
+	fmt.Println(color.HiBlueString(" Dwifi Registered Successfully!!!"))
 	fmt.Println("____________________________________________________________________________________")
+
+	if err != nil {
+		log.Fatalf("Failed to execute ErebrusRegistry: %v", err)
+	}
 
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {

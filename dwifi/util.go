@@ -1,6 +1,7 @@
 package dwifi
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
@@ -173,9 +175,16 @@ func PrintFancyBanner() {
 	fmt.Println()
 	color.New(color.FgHiWhite).Add(color.Bold, color.Underline).Println("Welcome to Erebrus DWiFi!")
 	fmt.Println()
-	fmt.Printf(" Wallet Address: %s\n", color.HiGreenString(os.Getenv("WALLET_ADDRESS")))
+	// fmt.Printf(" Wallet Address: %s\n", color.HiGreenString(os.Getenv("WALLET_ADDRESS")))
+	reader := bufio.NewReader(os.Stdin)
+	color.New(color.FgGreen).Add(color.Bold).Print(" Enter Wallet Address: ")
+	walletAddress, _ := reader.ReadString('\n')
+	walletAddress = strings.TrimSpace(walletAddress)
+	time.Sleep(2 * time.Second)
 	fmt.Printf(" Chain : %s\n", color.HiBlueString(os.Getenv("CHAIN")))
-	fmt.Println(" Price Per Minute : ", color.HiMagentaString(os.Getenv("PRICE_PER_MIN")))
+	time.Sleep(2 * time.Second)
+
+	// fmt.Println(" Price Per Minute : ", color.HiMagentaString(os.Getenv("PRICE_PER_MIN")))
 
 }
 
